@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model books {
+  id             Int       @id @default(autoincrement())
+  title          String
+  author         String
+  genre          String?
+  published_year Int?
+  is_available   Boolean?  @default(true)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model categories {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  old_products old_products[]
+  products     products[]
+}
+
+model customers {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  orders     orders[]
+}
+
+model directors {
+  id     Int      @id @default(autoincrement())
+  name   String   @unique
+  movies movies[]
+}
+
+model genres {
+  id     Int      @id @default(autoincrement())
+  name   String   @unique
+  movies movies[]
+}
+
+model movies {
+  id           Int       @id @default(autoincrement())
+  title        String
+  director_id  Int
+  genre_id     Int
+  release_year Int?
+  is_watched   Boolean?  @default(false)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  directors    directors @relation(fields: [director_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_director")
+  genres       genres    @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_genre")
+}
+
+model old_products {
+  id             Int        @id @default(autoincrement())
+  name           String
+  category_id    Int
+  price          Decimal    @db.Decimal(10, 2)
+  stock_quantity Int?       @default(0)
+  categories     categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category_old")
+}
+
+model order_items {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  product_id Int
+  quantity   Int      @default(1)
+  unit_price Decimal  @db.Decimal(10, 2)
+  orders     orders   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order")
+  products   products @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_product")
+}
+
+model orders {
+  id          Int           @id @default(autoincrement())
+  customer_id Int
+  order_date  DateTime?     @default(now()) @db.Timestamp(6)
+  status      String?       @default("pending")
+  order_items order_items[]
+  customers   customers     @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_customer")
+}
+
+model products {
+  id             Int           @id @default(autoincrement())
+  name           String
+  category_id    Int
+  price          Decimal       @db.Decimal(10, 2)
+  stock_quantity Int?          @default(0)
+  order_items    order_items[]
+  categories     categories    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category")
+}
